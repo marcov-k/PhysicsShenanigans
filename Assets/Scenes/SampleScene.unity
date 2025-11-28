@@ -119,6 +119,53 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &492328527
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 492328528}
+  - component: {fileID: 492328529}
+  m_Layer: 0
+  m_Name: SurfaceManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &492328528
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492328527}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.3653942, y: 2.1694155, z: 0.012446915}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &492328529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492328527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e90bd6cd910fe340ba8615d15bd8bf0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  surfaces:
+  - {fileID: 1804403543}
+  - {fileID: 1204647185}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -677,7 +724,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fricCoef: 0
-  spawnPoint: {x: 0, y: 0}
+  prevSurface: {fileID: 0}
+  nextSurface: {fileID: 0}
 --- !u!114 &1204647186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -690,7 +738,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9fc8fb6fd5cc714d9cd87defd65e036, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotation: 30
+  rotation: 50
   fricCoef: 0
   skierPrefab: {fileID: 220879145156542283, guid: e85bd07678e18f140819c31bc5ffa810, type: 3}
 --- !u!1 &1498024781
@@ -874,7 +922,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fricCoef: 0
-  spawnPoint: {x: 0, y: 0}
+  prevSurface: {fileID: 0}
+  nextSurface: {fileID: 0}
 --- !u!114 &1804403544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -887,8 +936,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9fc8fb6fd5cc714d9cd87defd65e036, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotation: 0
-  fricCoef: 1
+  rotation: 20
+  fricCoef: 10
   skierPrefab: {fileID: 0}
 --- !u!1 &1868381334
 GameObject:
@@ -1079,6 +1128,7 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 929713276}
   - {fileID: 1868381336}
+  - {fileID: 492328528}
   - {fileID: 1804403542}
   - {fileID: 1204647184}
   - {fileID: 1498024784}

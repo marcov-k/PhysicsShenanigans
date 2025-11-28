@@ -106,3 +106,4 @@ MonoBehaviour:
   mySurface: {fileID: 0}
   VelocityCutoff: 0.01
   spawnSurface: {fileID: 0}
+  epsPow: 35

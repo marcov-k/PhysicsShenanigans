@@ -12,9 +12,33 @@ public class Surface : MonoBehaviour
     public SpriteRenderer MyRenderer { get; private set; }
     public float Width { get; private set; }
     public float Height { get; private set; }
-    Vector2 origin;
+    public Vector2 Origin
+    {
+        get { return _origin; }
+        set
+        {
+            _origin = value;
+            UpdatePose();
+        }
+    }
+    private Vector2 _origin;
+    public Vector2 NextOrigin
+    {
+        get { return _nextOrigin; }
+        set
+        {
+            _nextOrigin = value;
+            if (nextSurface != null)
+            {
+                nextSurface.Origin = _nextOrigin;
+            }
+        }
+    }
+    private Vector2 _nextOrigin;
     public float fricCoef;
-    public Vector2 spawnPoint;
+    public Vector2 SpawnPoint { get; private set; }
+    public Surface prevSurface;
+    public Surface nextSurface;
 
     void Awake()
     {
@@ -25,7 +49,11 @@ public class Surface : MonoBehaviour
     {
         Width = MyRenderer.bounds.extents.x;
         Height = MyRenderer.bounds.extents.y;
-        origin = new Vector2(transform.position.x + Width, transform.position.y);
+        NextOrigin = new(transform.position.x - Width, transform.position.y);
+        if (prevSurface == null)
+        {
+            Origin = new Vector2(transform.position.x + Width, transform.position.y);
+        }
     }
 
     void Update()
@@ -35,9 +63,12 @@ public class Surface : MonoBehaviour
 
     void UpdatePose()
     {
-        float xPos = origin.x - Width * Mathf.Cos(_rotation * Mathf.Deg2Rad);
-        float yPos = origin.y + Width * Mathf.Sin(-_rotation * Mathf.Deg2Rad);
+        float xPos = Origin.x - Width * Mathf.Cos(_rotation * Mathf.Deg2Rad);
+        float yPos = Origin.y + Width * Mathf.Sin(-_rotation * Mathf.Deg2Rad);
+        float nextX = Origin.x - 2.0f * Width * Mathf.Cos(_rotation * Mathf.Deg2Rad);
+        float nextY = Origin.y + 2.0f * Width * Mathf.Sin(-_rotation * Mathf.Deg2Rad);
         transform.SetPositionAndRotation(new Vector2(xPos, yPos), Quaternion.Euler(0, 0, _rotation));
+        NextOrigin = new(nextX, nextY);
         CalcSpawnPoint();
     }
 
@@ -49,6 +80,6 @@ public class Surface : MonoBehaviour
         float totAngle = rot - addAngle;
         float xDiff = -dist * Mathf.Cos(totAngle);
         float yDiff = -dist * Mathf.Sin(totAngle);
-        spawnPoint = new(transform.position.x + xDiff, transform.position.y + yDiff);
+        SpawnPoint = new(transform.position.x + xDiff, transform.position.y + yDiff);
     }
 }

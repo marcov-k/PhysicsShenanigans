@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 [RequireComponent(typeof(Transform))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -60,10 +61,16 @@ public class Skier : MonoBehaviour
             {
                 if (mySurface != surf)
                 {
-                    myVelocity = new(myVelocity.x, 0);
+                    float velMag = Mathf.Sqrt(Mathf.Pow(myVelocity.x, 2) + Mathf.Pow(myVelocity.y, 2));
+                    float velX = velMag * Mathf.Cos(-surfAngle);
+                    float velY = velMag * Mathf.Sin(-surfAngle);
+                    myVelocity = new(velX, velY);
                 }
                 mySurface = surf;
                 transform.rotation = mySurface.transform.rotation;
+                float xPos = mySurface.Height * Mathf.Sin(surfAngle) + relPos.x * Mathf.Cos(surfAngle) + Height * Mathf.Sin(surfAngle) + mySurface.transform.position.x;
+                float yPos = mySurface.Height * Mathf.Cos(surfAngle) - relPos.x * Mathf.Sin(surfAngle) + Height * Mathf.Cos(surfAngle) + mySurface.transform.position.y;
+                transform.position = new(xPos, yPos);
                 break;
             }
             else mySurface = null;
@@ -73,9 +80,9 @@ public class Skier : MonoBehaviour
     Vector2 UpdateVelocity(Vector2 velocity)
     {
         var force = CalcForces();
-        Vector2 a = CalcAccel(force);
-        float t = Time.deltaTime;
-        return new(velocity.x + a.x * t, velocity.y + a.y * t);
+        var a = CalcAccel(force);
+        velocity = CalcVelocity(a, velocity);
+        return velocity;
     }
 
     Vector2 CalcForces()
@@ -83,6 +90,7 @@ public class Skier : MonoBehaviour
         Vector2 mg = new(0, mass * -myEnv.gravity);
         Vector2 normal = Vector2.zero;
         Vector2 fric = Vector2.zero;
+        Vector2 sum = Vector2.zero;
         if (mySurface != null)
         {
             float theta = mySurface.Rotation * Mathf.Deg2Rad;
@@ -95,25 +103,45 @@ public class Skier : MonoBehaviour
             float fricMag = mySurface.fricCoef * normMag;
 
             float fricX = 0;
-            if (myVelocity.x > VelocityCutoff) fricX = -fricMag * Mathf.Cos(theta);
-            else if (myVelocity.x < -VelocityCutoff) fricX = fricMag * Mathf.Cos(theta);
+            if (myVelocity.x > 0) fricX = -fricMag * Mathf.Cos(theta);
+            else if (myVelocity.x < 0) fricX = fricMag * Mathf.Cos(theta);
             else myVelocity = new(0, myVelocity.y);
 
             float fricY = 0;
-            if (myVelocity.y > VelocityCutoff) fricY = -fricMag * Mathf.Sin(theta);
-            else if (myVelocity.y < -VelocityCutoff) fricY = fricMag * Mathf.Sin(theta);
+            if (myVelocity.y > 0) fricY = -fricMag * Mathf.Sin(theta);
+            else if (myVelocity.y < 0) fricY = fricMag * Mathf.Sin(theta);
             else myVelocity = new(myVelocity.x, 0);
 
             fric = new(fricX, fricY);
+
+            sum = mg + normal + fric;
+            var a = CalcAccel(sum);
+            var vel = CalcVelocity(a, myVelocity);
+            if (Mathf.Sign(vel.x) != 0 && Mathf.Sign(myVelocity.x) != 0 && Mathf.Sign(vel.x) != Mathf.Sign(myVelocity.x))
+            {
+                fric.x = 0;
+                myVelocity.x = 0;
+            }
+            if (Mathf.Sign(vel.y) != 0 && Mathf.Sign(myVelocity.y) != 0 && Mathf.Sign(vel.y) != Mathf.Sign(myVelocity.y))
+            {
+                fric.y = 0;
+                myVelocity.y = 0;
+            }
         }
-        Vector2 sum = mg + normal + fric;
+        sum = mg + normal + fric;
         return sum;
     }
 
     Vector2 CalcAccel(Vector2 force)
     {
-        Vector2 accel = new(force.x / mass, force.y / mass);
+        Vector2 accel = force / mass;
         return accel;
+    }
+
+    Vector2 CalcVelocity(Vector2 accel, Vector2 velocity)
+    {
+        float t = Time.deltaTime;
+        return new(velocity.x + accel.x * t, velocity.y + accel.y * t);
     }
 
     Vector2 CalcNewPos(Vector2 velocity)
@@ -148,7 +176,7 @@ public class Skier : MonoBehaviour
         myVelocity = Vector2.zero;
         transform.rotation = spawnSurface.transform.rotation;
         float angle = spawnSurface.transform.eulerAngles.z * Mathf.Deg2Rad;
-        var spawnPos = spawnSurface.spawnPoint;
+        var spawnPos = spawnSurface.SpawnPoint;
         float xDiff = -Height * Mathf.Sin(angle) + Width * Mathf.Cos(angle);
         float yDiff = Height * Mathf.Cos(angle) + Width * Mathf.Sin(angle);
         spawnPos = new(spawnPos.x + xDiff, spawnPos.y + yDiff);

@@ -33,12 +33,16 @@ public class SurfaceControls : MonoBehaviour
 
     public void SpawnSkier()
     {
-        if (skierInstance != null)
+        bool newSkier = skierInstance == null;
+        if (newSkier)
         {
-            Destroy(skierInstance);
+            skierInstance = Instantiate(skierPrefab);
         }
-        skierInstance = Instantiate(skierPrefab);
         var skier = skierInstance.GetComponent<Skier>();
         skier.spawnSurface = mySurface;
+        if (!newSkier)
+        {
+            skier.Spawn();
+        }
     }
 }
