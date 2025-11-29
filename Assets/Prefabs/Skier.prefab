@@ -105,3 +105,12 @@ MonoBehaviour:
   myVelocity: {x: 0, y: 0}
   mySurface: {fileID: 0}
   spawnSurface: {fileID: 0}
+  endPos: 0
+  arrowPrefab: {fileID: 5915105563994832721, guid: ec4c6fe81e55c3a4481f41eea1b0965a, type: 3}
+  fricColor: {r: 1, g: 0.84751457, b: 0, a: 1}
+  mgColor: {r: 0.4552703, g: 0, b: 1, a: 1}
+  normalColor: {r: 0.04096198, g: 1, b: 0, a: 1}
+  accelColor: {r: 0, g: 1, b: 0.733037, a: 1}
+  velocityColor: {r: 0, g: 0.4226508, b: 1, a: 1}
+  forceScale: 200
+  velScale: 5

@@ -84,6 +84,7 @@ public class SurfaceManager : MonoBehaviour
         var controlObj = Instantiate(surfControlPrefab, surfControlCont.transform);
         var control = controlObj.GetComponent<SurfParamControl>();
         control.index = surfControls.Count;
+        control.surface = surfObj;
         surfControls.Add(control);
         surface.GetComponent<SurfaceControls>().myParamControl = control;
         var controlContTrans = surfControlCont.GetComponent<RectTransform>();
@@ -112,5 +113,11 @@ public class SurfaceManager : MonoBehaviour
             var height = surfControlPrefab.GetComponent<RectTransform>().sizeDelta.y;
             controlContTrans.sizeDelta = new(controlContTrans.sizeDelta.x, controlContTrans.sizeDelta.y - height);
         }
+    }
+
+    public void TrackSurface(GameObject surface)
+    {
+        followCam.Target.TrackingTarget = surface.transform;
+        followCam.Lens.OrthographicSize = buildLens;
     }
 }

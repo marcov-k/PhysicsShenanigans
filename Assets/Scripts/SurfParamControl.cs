@@ -9,6 +9,13 @@ public class SurfParamControl : MonoBehaviour
     public TMP_InputField fricInput;
     public int index;
     public TextMeshProUGUI label;
+    public GameObject surface;
+    SurfaceManager manager;
+
+    void Awake()
+    {
+        manager = FindFirstObjectByType<SurfaceManager>();
+    }
 
     void Start()
     {
@@ -25,6 +32,16 @@ public class SurfParamControl : MonoBehaviour
 
     public float GetFric()
     {
-        return (float)Convert.ChangeType(fricInput.text, typeof(float));
+        float fric = 0.0f;
+        if (fricInput.text != string.Empty)
+        {
+            fric = (float)Convert.ToDouble(fricInput.text);
+        }
+        return fric;
+    }
+
+    public void AlignCamera()
+    {
+        manager.TrackSurface(surface);
     }
 }

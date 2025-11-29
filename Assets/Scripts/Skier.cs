@@ -20,6 +20,23 @@ public class Skier : MonoBehaviour
     public float endPos;
     bool ended = false;
     SurfaceManager manager;
+    public GameObject arrowPrefab;
+    Vector2 friction = Vector2.zero;
+    VectorArrow fricArrow;
+    [SerializeField] Color fricColor;
+    Vector2 mg = Vector2.zero;
+    VectorArrow mgArrow;
+    [SerializeField] Color mgColor;
+    Vector2 normal = Vector2.zero;
+    VectorArrow normalArrow;
+    [SerializeField] Color normalColor;
+    Vector2 accel = Vector2.zero;
+    VectorArrow accelArrow;
+    [SerializeField] Color accelColor;
+    VectorArrow velocityArrow;
+    [SerializeField] Color velocityColor;
+    [SerializeField] float forceScale = 20.0f;
+    [SerializeField] float velScale = 5.0f;
 
     void Awake()
     {
@@ -32,6 +49,7 @@ public class Skier : MonoBehaviour
     {
         Width = myRenderer.bounds.extents.x;
         Height = myRenderer.bounds.extents.y;
+        InitVectorArrows();
         transform.rotation = Quaternion.Euler(0, 0, startAngle);
         UpdateSurfaces();
         Spawn();
@@ -52,6 +70,7 @@ public class Skier : MonoBehaviour
             transform.position = CalcNewPos(myVelocity);
         }
         else myVelocity = Vector2.zero;
+        UpdateVectorArrows();
     }
 
     void CheckEnd()
@@ -120,6 +139,7 @@ public class Skier : MonoBehaviour
     {
         var force = CalcForces(normal);
         var a = CalcAccel(force);
+        accel = a;
         velocity = CalcVelocity(a, velocity);
         return velocity;
     }
@@ -191,6 +211,9 @@ public class Skier : MonoBehaviour
                 fric = new(fricX, fricY);
             }
         }
+        this.mg = mg;
+        this.normal = norm;
+        friction = fric;
         sum = mg + stdNorm + fric;
         return sum;
     }
@@ -212,14 +235,14 @@ public class Skier : MonoBehaviour
         return new(transform.position.x + velocity.x * Time.deltaTime, transform.position.y + velocity.y * Time.deltaTime);
     }
 
-    float ClampAngleRad(float angle)
+    public static float ClampAngleRad(float angle)
     {
         if (angle > 2.0f * Mathf.PI) angle -= 2.0f * Mathf.PI;
         else if (angle < 0.0f) angle += 2.0f * Mathf.PI;
         return angle;
     }
 
-    float ClampAngleDeg(float angle)
+    public static float ClampAngleDeg(float angle)
     {
         if (angle > 360.0f) angle -= 360.0f;
         else if (angle < 0.0f) angle += 360.0f;
@@ -251,5 +274,36 @@ public class Skier : MonoBehaviour
         surfaces.Clear();
         surfaces.AddRange(manager.surfaces);
         spawnSurface = surfaces.Last();
+    }
+
+    void UpdateVectorArrows()
+    {
+        fricArrow.vector = friction;
+        mgArrow.vector = mg;
+        normalArrow.vector = normal;
+        accelArrow.vector = accel;
+        velocityArrow.vector = myVelocity;
+    }
+
+    void InitVectorArrows()
+    {
+        fricArrow = InitVectorArrow(fricColor, forceScale, -0.45f);
+        mgArrow = InitVectorArrow(mgColor, forceScale, 0.0f);
+        normalArrow = InitVectorArrow(normalColor, forceScale, 0.0f);
+        accelArrow = InitVectorArrow(accelColor, velScale, -0.2f);
+        velocityArrow = InitVectorArrow(velocityColor, velScale, 0.0f);
+    }
+
+    VectorArrow InitVectorArrow(Color color, float scale, float yOffset)
+    {
+        var arrowObj = Instantiate(arrowPrefab, transform);
+        arrowObj.transform.localPosition = new(arrowObj.transform.localPosition.x, arrowObj.transform.localPosition.y + yOffset);
+        var arrow = arrowObj.GetComponent<VectorArrow>();
+        arrow.origin = arrowObj.transform.localPosition;
+        arrow.SetColor(color);
+        arrow.scaleFactor = scale;
+        arrow.skier = gameObject;
+        arrow.Show();
+        return arrow;
     }
 }
