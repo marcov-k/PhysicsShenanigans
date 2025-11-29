@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 [RequireComponent(typeof(Transform))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -18,12 +19,13 @@ public class Skier : MonoBehaviour
     Vector2? collisionNormal;
     public float endPos;
     bool ended = false;
+    SurfaceManager manager;
 
     void Awake()
     {
         myEnv = FindFirstObjectByType<Environment>();
         myRenderer = GetComponent<SpriteRenderer>();
-        surfaces.AddRange(FindObjectsByType<Surface>(FindObjectsSortMode.None));
+        manager = FindFirstObjectByType<SurfaceManager>();
     }
 
     void Start()
@@ -31,6 +33,7 @@ public class Skier : MonoBehaviour
         Width = myRenderer.bounds.extents.x;
         Height = myRenderer.bounds.extents.y;
         transform.rotation = Quaternion.Euler(0, 0, startAngle);
+        UpdateSurfaces();
         Spawn();
     }
 
@@ -241,5 +244,12 @@ public class Skier : MonoBehaviour
         float yDiff = Height * Mathf.Cos(angle) + Width * Mathf.Sin(angle);
         spawnPos = new(spawnPos.x + xDiff, spawnPos.y + yDiff);
         transform.position = spawnPos;
+    }
+
+    public void UpdateSurfaces()
+    {
+        surfaces.Clear();
+        surfaces.AddRange(manager.surfaces);
+        spawnSurface = surfaces.Last();
     }
 }

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5924221100488968817}
   - component: {fileID: 2097398720873919294}
   m_Layer: 0
-  m_Name: Surface
+  m_Name: LongSurface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.25, y: -4, z: 0}
-  m_LocalScale: {x: 8.5, y: 0.1, z: 1}
+  m_LocalScale: {x: 12, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -118,7 +118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9fc8fb6fd5cc714d9cd87defd65e036, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotation: 50
-  fricCoefDyn: 2
-  fricCoefSta: 2
+  rotation: 0
+  fricCoefDyn: 0
+  fricCoefSta: 0
   skierPrefab: {fileID: 0}

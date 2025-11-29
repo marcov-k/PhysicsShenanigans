@@ -10,10 +10,12 @@ public class SurfaceControls : MonoBehaviour
     Surface mySurface;
     public GameObject skierPrefab;
     GameObject skierInstance;
+    SurfaceManager manager;
 
     void Awake()
     {
         mySurface = GetComponent<Surface>();
+        manager = FindFirstObjectByType<SurfaceManager>();
     }
 
     void Update()
@@ -34,17 +36,22 @@ public class SurfaceControls : MonoBehaviour
         mySurface.fricCoefSta = fricCoefSta;
     }
 
-    public void SpawnSkier(CinemachineCamera cam, float endPos)
+    public void SpawnSkier(GameObject instance, CinemachineCamera cam, float endPos)
     {
+        if (instance != null)
+        {
+            skierInstance = instance;
+        }
         bool newSkier = skierInstance == null;
         if (newSkier)
         {
             skierInstance = Instantiate(skierPrefab);
-            cam.Target.TrackingTarget = skierInstance.transform;
+            manager.skierInstance = skierInstance;
         }
         var skier = skierInstance.GetComponent<Skier>();
-        skier.spawnSurface = mySurface;
         skier.endPos = endPos;
+        cam.Target.TrackingTarget = skierInstance.transform;
+        cam.Lens.OrthographicSize = manager.skierLens;
         if (!newSkier)
         {
             skier.Spawn();
