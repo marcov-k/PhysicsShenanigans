@@ -1,12 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.UI;
 using Unity.Cinemachine;
+using UnityEngine.UI;
 
 public class SurfaceManager : MonoBehaviour
 {
-    public List<Surface> surfaces = new List<Surface>();
+    public List<Surface> surfaces = new();
+    public List<SurfParamControl> surfControls = new();
+    public GameObject surfControlCont;
+    public GameObject surfControlPrefab;
     public GameObject shortPrefab;
     public GameObject mediumPrefab;
     public GameObject longPrefab;
@@ -78,6 +81,14 @@ public class SurfaceManager : MonoBehaviour
         }
         followCam.Target.TrackingTarget = surfObj.transform;
         followCam.Lens.OrthographicSize = buildLens;
+        var controlObj = Instantiate(surfControlPrefab, surfControlCont.transform);
+        var control = controlObj.GetComponent<SurfParamControl>();
+        control.index = surfControls.Count;
+        surfControls.Add(control);
+        surface.GetComponent<SurfaceControls>().myParamControl = control;
+        var controlContTrans = surfControlCont.GetComponent<RectTransform>();
+        var height = surfControlPrefab.GetComponent<RectTransform>().sizeDelta.y;
+        controlContTrans.sizeDelta = new(controlContTrans.sizeDelta.x, controlContTrans.sizeDelta.y + height);
     }
 
     public void RemoveSurface()
@@ -94,6 +105,12 @@ public class SurfaceManager : MonoBehaviour
             {
                 skierInstance.GetComponent<Skier>().UpdateSurfaces();
             }
+            var control = surfControls.Last();
+            surfControls.Remove(control);
+            Destroy(control.gameObject);
+            var controlContTrans = surfControlCont.GetComponent<RectTransform>();
+            var height = surfControlPrefab.GetComponent<RectTransform>().sizeDelta.y;
+            controlContTrans.sizeDelta = new(controlContTrans.sizeDelta.x, controlContTrans.sizeDelta.y - height);
         }
     }
 }

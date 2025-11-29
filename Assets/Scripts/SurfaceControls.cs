@@ -11,6 +11,7 @@ public class SurfaceControls : MonoBehaviour
     public GameObject skierPrefab;
     GameObject skierInstance;
     SurfaceManager manager;
+    public SurfParamControl myParamControl;
 
     void Awake()
     {
@@ -20,8 +21,16 @@ public class SurfaceControls : MonoBehaviour
 
     void Update()
     {
+        GetUserSettings();
         UpdateRotation();
         UpdateParams();
+    }
+
+    void GetUserSettings()
+    {
+        rotation = myParamControl.GetRot();
+        fricCoefDyn = myParamControl.GetFric();
+        fricCoefSta = fricCoefDyn * 1.2f;
     }
 
     void UpdateRotation()
