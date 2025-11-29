@@ -35,10 +35,12 @@ public class Surface : MonoBehaviour
         }
     }
     private Vector2 _nextOrigin;
-    public float fricCoef;
+    public float fricCoefDyn;
+    public float fricCoefSta;
     public Vector2 SpawnPoint { get; private set; }
     public Surface prevSurface;
     public Surface nextSurface;
+    public bool first = false;
 
     void Awake()
     {
@@ -50,7 +52,7 @@ public class Surface : MonoBehaviour
         Width = MyRenderer.bounds.extents.x;
         Height = MyRenderer.bounds.extents.y;
         NextOrigin = new(transform.position.x - Width, transform.position.y);
-        if (prevSurface == null)
+        if (prevSurface == null && !first)
         {
             Origin = new Vector2(transform.position.x + Width, transform.position.y);
         }

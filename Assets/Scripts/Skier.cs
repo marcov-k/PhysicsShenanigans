@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 
 [RequireComponent(typeof(Transform))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -15,8 +14,10 @@ public class Skier : MonoBehaviour
     [SerializeField] Surface mySurface = null;
     public float Width { get; private set; }
     public float Height { get; private set; }
-    public float VelocityCutoff = 0.01f;
     public Surface spawnSurface;
+    Vector2? collisionNormal;
+    public float endPos;
+    bool ended = false;
 
     void Awake()
     {
@@ -35,9 +36,25 @@ public class Skier : MonoBehaviour
 
     void Update()
     {
-        CheckCollisions();
-        myVelocity = UpdateVelocity(myVelocity);
-        transform.position = CalcNewPos(myVelocity);
+        CheckEnd();
+        if (!ended)
+        {
+            CheckCollisions();
+            if (collisionNormal != null)
+            {
+                myVelocity = UpdateVelocity(myVelocity, collisionNormal);
+                collisionNormal = null;
+            }
+            else myVelocity = UpdateVelocity(myVelocity);
+            transform.position = CalcNewPos(myVelocity);
+        }
+        else myVelocity = Vector2.zero;
+    }
+
+    void CheckEnd()
+    {
+        if (transform.position.x - myRenderer.bounds.extents.x > endPos) ended = true;
+        else ended = false;
     }
 
     void CheckCollisions()
@@ -49,6 +66,7 @@ public class Skier : MonoBehaviour
         float edgeX = nextPos.x + Height * Mathf.Cos(traceAngle);
         float edgeY = nextPos.y + Height * Mathf.Sin(traceAngle);
         nextPos = new(edgeX, edgeY);
+        Surface newSurf = null;
         foreach (var surf in surfaces)
         {
             Vector2 surfPos = surf.transform.position;
@@ -57,9 +75,27 @@ public class Skier : MonoBehaviour
             Vector2 relPos = new(xDiff, yDiff);
             float surfAngle = ClampAngleDeg(-surf.transform.eulerAngles.z) * Mathf.Deg2Rad;
             relPos = RotatePlane(relPos, angle + surfAngle);
-            if (relPos.y <= surf.Height && relPos.x >= -surf.Width && relPos.x <= surf.Width)
+            if (relPos.y <= surf.Height + 0.001f && relPos.x >= -surf.Width && relPos.x <= surf.Width)
             {
-                if (mySurface != surf)
+                transform.rotation = surf.transform.rotation;
+                if (mySurface == null)
+                {
+                    float velAngle = ClampAngleRad(-Mathf.Atan2(myVelocity.y, myVelocity.x));
+                    float v0 = Mathf.Sqrt(Mathf.Pow(myVelocity.x, 2) + Mathf.Pow(myVelocity.y, 2));
+                    float angleDiff = velAngle - surfAngle;
+                    float velKept = v0 * Mathf.Cos(angleDiff);
+                    float velLost = v0 * Mathf.Sin(angleDiff);
+                    float velKeptX = velKept * Mathf.Cos(surfAngle);
+                    float velKeptY = -velKept * Mathf.Sin(surfAngle);
+                    myVelocity = new(velKeptX, velKeptY);
+                    float aL = velLost / Time.deltaTime;
+                    float theta = surf.Rotation * Mathf.Deg2Rad;
+                    float normMag = mass * aL;
+                    float normX = normMag * Mathf.Sin(theta);
+                    float normY = normMag * Mathf.Cos(theta);
+                    collisionNormal = new(normX, normY);
+                }
+                else if (mySurface != surf)
                 {
                     float velMag = Mathf.Sqrt(Mathf.Pow(myVelocity.x, 2) + Mathf.Pow(myVelocity.y, 2));
                     float velX = velMag * Mathf.Cos(-surfAngle);
@@ -67,68 +103,92 @@ public class Skier : MonoBehaviour
                     myVelocity = new(velX, velY);
                 }
                 mySurface = surf;
-                transform.rotation = mySurface.transform.rotation;
                 float xPos = mySurface.Height * Mathf.Sin(surfAngle) + relPos.x * Mathf.Cos(surfAngle) + Height * Mathf.Sin(surfAngle) + mySurface.transform.position.x;
                 float yPos = mySurface.Height * Mathf.Cos(surfAngle) - relPos.x * Mathf.Sin(surfAngle) + Height * Mathf.Cos(surfAngle) + mySurface.transform.position.y;
                 transform.position = new(xPos, yPos);
+                newSurf = surf;
                 break;
             }
-            else mySurface = null;
         }
+        mySurface = newSurf;
     }
 
-    Vector2 UpdateVelocity(Vector2 velocity)
+    Vector2 UpdateVelocity(Vector2 velocity, Vector2? normal = null)
     {
-        var force = CalcForces();
+        var force = CalcForces(normal);
         var a = CalcAccel(force);
         velocity = CalcVelocity(a, velocity);
         return velocity;
     }
 
-    Vector2 CalcForces()
+    Vector2 CalcForces(Vector2? normal = null)
     {
         Vector2 mg = new(0, mass * -myEnv.gravity);
-        Vector2 normal = Vector2.zero;
+        Vector2 norm = normal ?? Vector2.zero;
+        Vector2 stdNorm = Vector2.zero;
         Vector2 fric = Vector2.zero;
-        Vector2 sum = Vector2.zero;
+        Vector2 sum;
         if (mySurface != null)
         {
             float theta = mySurface.Rotation * Mathf.Deg2Rad;
 
-            float normMag = -mg.y * Mathf.Cos(theta);
-            float normX = normMag * Mathf.Sin(theta);
-            float normY = normMag * Mathf.Cos(theta);
-            normal = new(normX, normY);
-
-            float fricMag = mySurface.fricCoef * normMag;
-
-            float fricX = 0;
-            if (myVelocity.x > 0) fricX = -fricMag * Mathf.Cos(theta);
-            else if (myVelocity.x < 0) fricX = fricMag * Mathf.Cos(theta);
-            else myVelocity = new(0, myVelocity.y);
-
-            float fricY = 0;
-            if (myVelocity.y > 0) fricY = -fricMag * Mathf.Sin(theta);
-            else if (myVelocity.y < 0) fricY = fricMag * Mathf.Sin(theta);
-            else myVelocity = new(myVelocity.x, 0);
-
-            fric = new(fricX, fricY);
-
-            sum = mg + normal + fric;
-            var a = CalcAccel(sum);
-            var vel = CalcVelocity(a, myVelocity);
-            if (Mathf.Sign(vel.x) != 0 && Mathf.Sign(myVelocity.x) != 0 && Mathf.Sign(vel.x) != Mathf.Sign(myVelocity.x))
+            float normMag = Mathf.Sqrt(Mathf.Pow(norm.x, 2) + Mathf.Pow(norm.y, 2));
+            stdNorm = new(-mg.y * Mathf.Cos(theta) * Mathf.Sin(theta), -mg.y * Mathf.Cos(theta) * Mathf.Cos(theta));
+            if (normal == null)
             {
-                fric.x = 0;
-                myVelocity.x = 0;
+                normMag = -mg.y * Mathf.Cos(theta);
+                float normX = normMag * Mathf.Sin(theta);
+                float normY = normMag * Mathf.Cos(theta);
+                norm = new(normX, normY);
             }
-            if (Mathf.Sign(vel.y) != 0 && Mathf.Sign(myVelocity.y) != 0 && Mathf.Sign(vel.y) != Mathf.Sign(myVelocity.y))
+            float speed = Mathf.Sqrt(Mathf.Pow(myVelocity.x, 2) + Mathf.Pow(myVelocity.y, 2));
+            if (speed > 0)
             {
-                fric.y = 0;
-                myVelocity.y = 0;
+                float fricMag = mySurface.fricCoefDyn * normMag;
+
+                float fricX = 0;
+                if (myVelocity.x > 0) fricX = -fricMag * Mathf.Cos(theta);
+                else if (myVelocity.x < 0) fricX = fricMag * Mathf.Cos(theta);
+
+                float fricY = 0;
+                if (myVelocity.y > 0) fricY = -fricMag * Mathf.Sin(theta);
+                else if (myVelocity.y < 0) fricY = fricMag * Mathf.Sin(theta);
+
+                fric = new(fricX, fricY);
+
+                sum = mg + norm + fric;
+                var a = CalcAccel(sum);
+                var vel = CalcVelocity(a, myVelocity);
+                if (Mathf.Sign(vel.x) != 0 && Mathf.Sign(myVelocity.x) != 0 && Mathf.Sign(vel.x) != Mathf.Sign(myVelocity.x))
+                {
+                    fric.x = 0;
+                    myVelocity.x = 0;
+                }
+                if (Mathf.Sign(vel.y) != 0 && Mathf.Sign(myVelocity.y) != 0 && Mathf.Sign(vel.y) != Mathf.Sign(myVelocity.y))
+                {
+                    fric.y = 0;
+                    myVelocity.y = 0;
+                }
+            }
+            else
+            {
+                float maxFricMag = mySurface.fricCoefSta * normMag;
+                sum = mg + norm;
+
+                float fricX = 0;
+                if (sum.x > 0) fricX = -maxFricMag * Mathf.Cos(theta);
+                else if (sum.x < 0) fricX = maxFricMag * Mathf.Cos(theta);
+                if (Mathf.Abs(fricX) > Mathf.Abs(sum.x)) fricX = Mathf.Abs(sum.x) * Mathf.Sign(fricX);
+
+                float fricY = 0;
+                if (sum.y > 0) fricY = -maxFricMag * Mathf.Sin(theta);
+                else if (sum.y < 0) fricY = maxFricMag * Mathf.Sin(theta);
+                if (Mathf.Abs(fricY) > Mathf.Abs(sum.y)) fricY = Mathf.Abs(sum.y) * Mathf.Sign(fricY);
+
+                fric = new(fricX, fricY);
             }
         }
-        sum = mg + normal + fric;
+        sum = mg + stdNorm + fric;
         return sum;
     }
 

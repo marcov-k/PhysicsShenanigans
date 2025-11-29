@@ -1,12 +1,14 @@
 using UnityEngine;
+using Unity.Cinemachine;
 
 [RequireComponent(typeof(Surface))]
 public class SurfaceControls : MonoBehaviour
 {
     public float rotation = 0.0f;
-    public float fricCoef = 0.2f;
+    public float fricCoefDyn = 0.2f;
+    public float fricCoefSta = 0.3f;
     Surface mySurface;
-    [SerializeField] GameObject skierPrefab;
+    public GameObject skierPrefab;
     GameObject skierInstance;
 
     void Awake()
@@ -28,18 +30,21 @@ public class SurfaceControls : MonoBehaviour
 
     void UpdateParams()
     {
-        mySurface.fricCoef = fricCoef;
+        mySurface.fricCoefDyn = fricCoefDyn;
+        mySurface.fricCoefSta = fricCoefSta;
     }
 
-    public void SpawnSkier()
+    public void SpawnSkier(CinemachineCamera cam, float endPos)
     {
         bool newSkier = skierInstance == null;
         if (newSkier)
         {
             skierInstance = Instantiate(skierPrefab);
+            cam.Target.TrackingTarget = skierInstance.transform;
         }
         var skier = skierInstance.GetComponent<Skier>();
         skier.spawnSurface = mySurface;
+        skier.endPos = endPos;
         if (!newSkier)
         {
             skier.Spawn();
