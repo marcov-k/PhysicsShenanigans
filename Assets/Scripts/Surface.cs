@@ -56,6 +56,7 @@ public class Surface : MonoBehaviour
         {
             Origin = new Vector2(transform.position.x + Width, transform.position.y);
         }
+        UpdatePose();
     }
 
     void Update()

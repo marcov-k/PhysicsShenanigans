@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 
 [RequireComponent(typeof(Transform))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -37,6 +38,7 @@ public class Skier : MonoBehaviour
     [SerializeField] Color velocityColor;
     [SerializeField] float forceScale = 20.0f;
     [SerializeField] float velScale = 5.0f;
+    public List<TextMeshProUGUI> toggleLabels = new(); // in the order: fric, mg, norm, accel, vel
 
     void Awake()
     {
@@ -287,10 +289,15 @@ public class Skier : MonoBehaviour
 
     void InitVectorArrows()
     {
+        toggleLabels[0].color = fricColor;
         fricArrow = InitVectorArrow(fricColor, forceScale, -0.45f);
+        toggleLabels[1].color = mgColor;
         mgArrow = InitVectorArrow(mgColor, forceScale, 0.0f);
+        toggleLabels[2].color = normalColor;
         normalArrow = InitVectorArrow(normalColor, forceScale, 0.0f);
+        toggleLabels[3].color = accelColor;
         accelArrow = InitVectorArrow(accelColor, velScale, -0.2f);
+        toggleLabels[4].color = velocityColor;
         velocityArrow = InitVectorArrow(velocityColor, velScale, 0.0f);
     }
 
@@ -303,7 +310,36 @@ public class Skier : MonoBehaviour
         arrow.SetColor(color);
         arrow.scaleFactor = scale;
         arrow.skier = gameObject;
-        arrow.Show();
         return arrow;
+    }
+
+    public void MGToggle(bool newVal)
+    {
+        if (newVal) mgArrow.Show();
+        else mgArrow.Hide();
+    }
+
+    public void NormToggle(bool newVal)
+    {
+        if (newVal) normalArrow.Show();
+        else normalArrow.Hide();
+    }
+
+    public void FricToggle(bool newVal)
+    {
+        if (newVal) fricArrow.Show();
+        else fricArrow.Hide();
+    }
+
+    public void AccelToggle(bool newVal)
+    {
+        if (newVal) accelArrow.Show();
+        else accelArrow.Hide();
+    }
+
+    public void VelToggle(bool newVal)
+    {
+        if (newVal) velocityArrow.Show();
+        else velocityArrow.Hide();
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SurfaceManager : MonoBehaviour
 {
@@ -20,10 +21,20 @@ public class SurfaceManager : MonoBehaviour
     public GameObject skierInstance = null;
     public float skierLens = 5.0f;
     public float buildLens = 7.5f;
+    [SerializeField] List<TextMeshProUGUI> toggleLabels = new(); // in the order: fric, mg, norm, accel, vel
+    [SerializeField] List<Toggle> toggles = new(); // in the order: fric, mg, norm, accel, vel
 
     void Start()
     {
         ConfigureSurfaces();
+        surfaces.Last().GetComponent<SurfaceControls>().SpawnSkier(skierInstance, followCam, slopeEnd.transform.position.x);
+        var skier = skierInstance.GetComponent<Skier>();
+        skier.toggleLabels.AddRange(toggleLabels);
+        toggles[0].onValueChanged.AddListener(x => skier.FricToggle(x));
+        toggles[1].onValueChanged.AddListener(x => skier.MGToggle(x));
+        toggles[2].onValueChanged.AddListener(x => skier.NormToggle(x));
+        toggles[3].onValueChanged.AddListener(x => skier.AccelToggle(x));
+        toggles[4].onValueChanged.AddListener(x => skier.VelToggle(x));
     }
 
     public void ConfigureSurfaces()
