@@ -23,13 +23,25 @@ public class SurfaceManager : MonoBehaviour
     public float buildLens = 7.5f;
     [SerializeField] List<TextMeshProUGUI> toggleLabels = new(); // in the order: fric, mg, norm, accel, vel
     [SerializeField] List<Toggle> toggles = new(); // in the order: fric, mg, norm, accel, vel
+    [SerializeField] TMP_InputField weightInput;
+    [SerializeField] TMP_InputField gravInput;
+    Environment env;
+
+    void Awake()
+    {
+        env = FindFirstObjectByType<Environment>();
+    }
 
     void Start()
     {
         ConfigureSurfaces();
         surfaces.Last().GetComponent<SurfaceControls>().SpawnSkier(skierInstance, followCam, slopeEnd.transform.position.x);
         var skier = skierInstance.GetComponent<Skier>();
+        env.GravChange(gravInput.text);
+        gravInput.onEndEdit.AddListener(x => env.GravChange(x));
         skier.toggleLabels.AddRange(toggleLabels);
+        skier.weightInput = weightInput;
+        weightInput.onEndEdit.AddListener(x => skier.MassChange(x));
         toggles[0].onValueChanged.AddListener(x => skier.FricToggle(x));
         toggles[1].onValueChanged.AddListener(x => skier.MGToggle(x));
         toggles[2].onValueChanged.AddListener(x => skier.NormToggle(x));

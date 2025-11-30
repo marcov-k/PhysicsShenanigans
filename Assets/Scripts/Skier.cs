@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using System;
 
 [RequireComponent(typeof(Transform))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -39,6 +40,7 @@ public class Skier : MonoBehaviour
     [SerializeField] float forceScale = 20.0f;
     [SerializeField] float velScale = 5.0f;
     public List<TextMeshProUGUI> toggleLabels = new(); // in the order: fric, mg, norm, accel, vel
+    public TMP_InputField weightInput;
 
     void Awake()
     {
@@ -52,6 +54,7 @@ public class Skier : MonoBehaviour
         Width = myRenderer.bounds.extents.x;
         Height = myRenderer.bounds.extents.y;
         InitVectorArrows();
+        mass = (float)Convert.ToDouble(weightInput.text);
         transform.rotation = Quaternion.Euler(0, 0, startAngle);
         UpdateSurfaces();
         Spawn();
@@ -341,5 +344,14 @@ public class Skier : MonoBehaviour
     {
         if (newVal) velocityArrow.Show();
         else velocityArrow.Hide();
+    }
+
+    public void MassChange(string newMass)
+    {
+        if (newMass != string.Empty)
+        {
+            mass = (float)Convert.ToDouble(newMass);
+        }
+        else mass = 0.0f;
     }
 }
