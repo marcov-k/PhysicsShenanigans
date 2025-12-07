@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
 using Unity.Cinemachine;
+using System.Collections.Generic;
+using System.Linq;
 
 public class Simulation : MonoBehaviour
 {
@@ -12,8 +14,13 @@ public class Simulation : MonoBehaviour
     static float visualTimestep;
     [SerializeField] Body[] bodies;
     [SerializeField] int trackIndex;
+    [SerializeField] float cameraSize = 14.0f;
     [SerializeField] CinemachineCamera cam;
     [SerializeField] GameObject bodyPrefab;
+    [SerializeField] GameObject trailPrefab;
+    [SerializeField] bool showTrails = true;
+    [SerializeField, Range(0.0f, 1.0f)] float trailOpacity = 0.5f;
+    [SerializeField] int trailLength = 2000;
     IEnumerator timestepCoroutine;
     IEnumerator visualCoroutine;
 
@@ -41,11 +48,24 @@ public class Simulation : MonoBehaviour
                     body.body.GetComponent<SpriteRenderer>().color = body.color;
                 }
                 body.body.transform.position = body.position;
+
+                if (showTrails)
+                {
+                    var trail = Instantiate(trailPrefab, body.position, Quaternion.identity);
+                    var trailSize = body.size / 4.0f;
+                    trail.transform.localScale = new(trailSize, trailSize, trailSize);
+                    var opacity = trailOpacity * body.velocity.magnitude * visualTimestep;
+                    trail.GetComponent<SpriteRenderer>().color = new(body.color.r, body.color.g, body.color.b, opacity);
+                    int length = (Mathf.RoundToInt(body.velocity.magnitude) != 0) ? Mathf.RoundToInt(trailLength / body.velocity.magnitude / visualTimestep) : 0;
+                    body.trailFIFO.Size = length;
+                    body.trailFIFO.AddTrail(trail);
+                }
             }
             if (trackIndex < bodies.Length && bodies.Length > 0 && trackIndex >= 0) cam.Target.TrackingTarget = bodies[trackIndex].body.transform;
             else cam.Target.TrackingTarget = transform;
+            cam.Lens.OrthographicSize = cameraSize;
 
-            yield return new WaitForSeconds(visualTimestep);
+            yield return new WaitForSecondsRealtime(visualTimestep);
         }
     }
 
@@ -70,7 +90,7 @@ public class Simulation : MonoBehaviour
                 MoveBody(body);
             }
 
-            yield return new WaitForSeconds(1.0f / timestepFrequency);
+            yield return new WaitForSecondsRealtime(timestep);
         }
     }
 
@@ -102,4 +122,27 @@ public class Body
     public GameObject body;
     public float size = 1.0f;
     public Color color = Color.white;
+    public TrailFIFO trailFIFO = new(0);
+}
+
+public class TrailFIFO
+{
+    public int Size;
+    readonly List<GameObject> trails = new();
+
+    public void AddTrail(GameObject newTrail)
+    {
+        trails.Add(newTrail);
+        while (trails.Count > Size)
+        {
+            var trail = trails.First();
+            trails.RemoveAt(0);
+            Object.Destroy(trail);
+        }
+    }
+
+    public TrailFIFO(int size)
+    {
+        Size = size;
+    }
 }

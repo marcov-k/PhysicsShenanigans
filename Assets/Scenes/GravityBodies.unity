@@ -182,7 +182,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 13.901726
+  orthographic size: 30
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -318,27 +318,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3e8d3d88aa13cd4eb17c441d8dce572, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timestepFrequency: 200
-  visualFrequency: 60
+  timestepFrequency: 300
+  visualFrequency: 300
   gravitationalConstant: 1
   bodies:
-  - mass: 1000
+  - mass: 1000000
     position: {x: 0, y: 0}
-    velocity: {x: 3, y: 0}
+    velocity: {x: 0, y: 0}
+    acceleration: {x: 0, y: 0}
+    body: {fileID: 0}
+    size: 5
+    color: {r: 0.9930656, g: 1, b: 0, a: 1}
+  - mass: 1000
+    position: {x: 20, y: 0}
+    velocity: {x: 0, y: 220}
     acceleration: {x: 0, y: 0}
     body: {fileID: 0}
     size: 3
-    color: {r: 0.09829593, g: 1, b: 0, a: 1}
-  - mass: 200
-    position: {x: 6, y: 0}
-    velocity: {x: 0, y: 15}
+    color: {r: 0, g: 1, b: 0.3965819, a: 1}
+  - mass: 100
+    position: {x: 25, y: 0}
+    velocity: {x: 0, y: 100}
     acceleration: {x: 0, y: 0}
     body: {fileID: 0}
     size: 1
-    color: {r: 1, g: 0, b: 0, a: 1}
+    color: {r: 0.7075472, g: 0.7075472, b: 0.7075472, a: 1}
   trackIndex: 0
+  cameraSize: 30
   cam: {fileID: 820804362}
   bodyPrefab: {fileID: 8400376605305868639, guid: 8b488e2e01836bc459c37f33e425ef28, type: 3}
+  trailPrefab: {fileID: 8400376605305868639, guid: e096b5e29f48dfb40b8975e76d5d21f4, type: 3}
+  showTrails: 1
+  trailOpacity: 0.5
+  trailLength: 200
 --- !u!4 &557727799
 Transform:
   m_ObjectHideFlags: 0
@@ -364,7 +376,7 @@ GameObject:
   m_Component:
   - component: {fileID: 820804363}
   - component: {fileID: 820804362}
-  - component: {fileID: 820804361}
+  - component: {fileID: 820804364}
   m_Layer: 0
   m_Name: FollowCamera
   m_TagString: Untagged
@@ -372,25 +384,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &820804361
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 820804359}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TrackerSettings:
-    BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
-    AngularDampingMode: 0
-    RotationDamping: {x: 1, y: 1, z: 1}
-    QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!114 &820804362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -416,7 +409,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 60
-    OrthographicSize: 13.901726
+    OrthographicSize: 30
     NearClipPlane: 0.3
     FarClipPlane: 1000
     Dutch: 0
@@ -449,6 +442,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &820804364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 820804359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 886251e9a18ece04ea8e61686c173e1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CameraDistance: 10
+  DeadZoneDepth: 0
+  Composition:
+    ScreenPosition: {x: 0, y: 0}
+    DeadZone:
+      Enabled: 0
+      Size: {x: 0.006, y: 0.01}
+    HardLimits:
+      Enabled: 0
+      Size: {x: 2, y: 2}
+      Offset: {x: 0, y: 0}
+  CenterOnActivate: 1
+  TargetOffset: {x: 0, y: 0, z: 0}
+  Damping: {x: 1, y: 1, z: 1}
+  Lookahead:
+    Enabled: 0
+    Time: 0
+    Smoothing: 0
+    IgnoreY: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

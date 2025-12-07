@@ -44,5 +44,11 @@ TagManager:
   - name: VectorArrows
     uniqueID: 709424689
     locked: 0
+  - name: Trails
+    uniqueID: 3604375825
+    locked: 0
+  - name: Bodies
+    uniqueID: 137705115
+    locked: 0
   m_RenderingLayers:
   - Default
