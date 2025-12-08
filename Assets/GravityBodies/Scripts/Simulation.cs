@@ -301,7 +301,7 @@ public class Body
     public Vector2 position = Vector2.zero;
     public Vector2 velocity = Vector2.zero;
     public Vector2 acceleration = Vector2.zero;
-    public GameObject body;
+    [System.NonSerialized] public GameObject body;
     public float size = 1.0f;
     public Color color = Color.white;
     public bool showTrail = true;
@@ -311,7 +311,7 @@ public class Body
     public Body Clone()
     {
         return new() { mass = mass, position = position, velocity = velocity,
-            acceleration = acceleration, body = body, size = size, color = color, showTrail = showTrail, trailLength = trailLength, trailFIFO = trailFIFO };
+            acceleration = acceleration, body = null, size = size, color = color, showTrail = showTrail, trailLength = trailLength, trailFIFO = null };
     }
 
     public void UpdateData(BodyMoveData data)
