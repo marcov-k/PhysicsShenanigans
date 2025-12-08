@@ -1,0 +1,84 @@
+#pragma kernel CalcAccel
+#pragma kernel ReduceAccel
+#pragma kernel Move
+
+struct BodyAclData
+{
+    float mass;
+    float2 pos;
+};
+
+struct BodyMoveData
+{
+    float2 pos;
+    float2 vel;
+    float2 acl;
+};
+
+StructuredBuffer<BodyAclData> aclInput;
+RWStructuredBuffer<float2> pairAccelBuffer;
+RWStructuredBuffer<float2> aclOutput;
+RWStructuredBuffer<BodyMoveData> moveIn;
+
+uint bodyCount;
+float gravConst;
+float timestep;
+
+[numthreads(8, 8, 1)]
+void CalcAccel(uint3 id : SV_DispatchThreadID)
+{
+    uint i = id.x;
+    uint j = id.y;
+    if (i >= bodyCount || j >= bodyCount)
+    {
+        return;
+    }
+    
+    uint index = i * bodyCount + j;
+    
+    if (i == j)
+    {
+        pairAccelBuffer[index] = float2(0, 0);
+        return;
+    }
+    
+    BodyAclData body = aclInput[i];
+    BodyAclData other = aclInput[j];
+    
+    float2 diff = other.pos - body.pos;
+    float r2 = pow(diff.x, 2.0) + pow(diff.y, 2.0);
+    float r2Recip = 1.0 / r2;
+    float rRecip = 1.0 / sqrt(r2);
+    float gm = gravConst * other.mass * r2Recip;
+    float2 a = float2(gm * diff.x * rRecip, gm * diff.y * rRecip);
+    
+    pairAccelBuffer[index] = a;
+}
+
+[numthreads(64, 1, 1)]
+void ReduceAccel(uint id : SV_DispatchThreadID)
+{
+    if (id >= bodyCount)
+    {
+        return;
+    }
+    
+    float2 total = float2(0, 0);
+    
+    uint rowStart = id * bodyCount;
+    
+    for (uint i = 0; i < bodyCount; i++)
+    {
+        total += pairAccelBuffer[rowStart + i];
+    }
+    aclOutput[id] = total;
+}
+
+[numthreads(64, 1, 1)]
+void Move(uint id : SV_DispatchThreadID)
+{
+    BodyMoveData body = moveIn[id];
+    body.vel += body.acl * timestep;
+    body.pos += body.vel * timestep;
+    moveIn[id] = body;
+}
