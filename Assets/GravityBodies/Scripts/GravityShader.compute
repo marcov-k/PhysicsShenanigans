@@ -77,6 +77,10 @@ void ReduceAccel(uint id : SV_DispatchThreadID)
 [numthreads(64, 1, 1)]
 void Move(uint id : SV_DispatchThreadID)
 {
+    if (id >= bodyCount)
+    {
+        return;
+    }
     BodyMoveData body = moveIn[id];
     body.vel += body.acl * timestep;
     body.pos += body.vel * timestep;

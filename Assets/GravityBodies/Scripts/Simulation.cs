@@ -4,7 +4,6 @@ using Unity.Cinemachine;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 
 [ExecuteInEditMode]
 public class Simulation : MonoBehaviour
@@ -16,6 +15,7 @@ public class Simulation : MonoBehaviour
     static float timestep;
     static float visualTimestep;
     [SerializeField] Body[] bodies;
+    Body[] _bodies;
     [SerializeField] int trackIndex;
     [SerializeField] float cameraSize = 14.0f;
     [SerializeField] CinemachineCamera cam;
@@ -40,6 +40,7 @@ public class Simulation : MonoBehaviour
         _gravConst = gravitationalConstant;
         timestep = 1.0f / timestepFrequency;
         visualTimestep = 1.0f / visualFrequency;
+        _bodies = CreatePredictBodies(bodies);
         PredictPaths();
         if (timestepCoroutine == null)
         {
@@ -166,10 +167,32 @@ public class Simulation : MonoBehaviour
                 showPreds = ShowPredictions;
                 PredictPaths();
             }
-            if (PredictionLength != predictionLength)
+            else if (PredictionLength != predictionLength)
             {
                 predictionLength = PredictionLength;
                 PredictPaths();
+            }
+            else if (timestepFrequency != timestep)
+            {
+                timestep = 1.0f / timestepFrequency;
+                PredictPaths();
+            }
+            else if (gravitationalConstant != _gravConst)
+            {
+                _gravConst = gravitationalConstant;
+                PredictPaths();
+            }
+            else
+            {
+                for (int i = 0; i < _bodies.Length; i++)
+                {
+                    if (_bodies[i] != bodies[i])
+                    {
+                        _bodies = CreatePredictBodies(bodies);
+                        PredictPaths();
+                        break;
+                    }
+                }
             }
             yield return delay;
         }
@@ -318,6 +341,26 @@ public class Body
     {
         position = data.pos;
         velocity = data.vel;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is Body)
+        {
+            var other = obj as Body;
+            if (mass == other.mass && position == other.position && velocity == other.velocity && acceleration == other.acceleration && body == other.body
+                && size == other.size && color == other.color && showTrail == other.showTrail && trailLength == other.trailLength && trailFIFO == other.trailFIFO)
+            {
+                return true;
+            }
+            else return false;
+        }
+        else return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
     }
 }
 
